@@ -46,11 +46,11 @@ resource "aws_api_gateway_rest_api" "this" {
 resource "aws_api_gateway_authorizer" "cognito" {
   count = var.enable_cognito_authorizer ? 1 : 0
 
-  name                   = var.authorizer_name
-  type                   = "COGNITO_USER_POOLS"
-  rest_api_id            = aws_api_gateway_rest_api.this.id
-  provider_arns          = var.cognito_user_pool_arns
-  identity_source        = var.identity_source
+  name                             = var.authorizer_name
+  type                             = "COGNITO_USER_POOLS"
+  rest_api_id                      = aws_api_gateway_rest_api.this.id
+  provider_arns                    = var.cognito_user_pool_arns
+  identity_source                  = var.identity_source
   authorizer_result_ttl_in_seconds = var.authorizer_result_ttl_in_seconds
 }
 
@@ -100,6 +100,7 @@ resource "aws_api_gateway_method" "method" {
             resource_key = resource_key
             method_name  = method_name
             config       = method_config
+            auth_mode    = coalesce(resource.authorization, "COGNITO_USER_POOLS")
           }
         }
       ]
@@ -109,8 +110,8 @@ resource "aws_api_gateway_method" "method" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = local.all_resources[each.value.resource_key].id
   http_method   = upper(each.value.method_name)
-  authorization = var.enable_cognito_authorizer ? "COGNITO_USER_POOLS" : "NONE"
-  authorizer_id = var.enable_cognito_authorizer ? aws_api_gateway_authorizer.cognito[0].id : null
+  authorization = var.enable_cognito_authorizer && each.value.auth_mode == "COGNITO_USER_POOLS" ? "COGNITO_USER_POOLS" : "NONE"
+  authorizer_id = var.enable_cognito_authorizer && each.value.auth_mode == "COGNITO_USER_POOLS" ? aws_api_gateway_authorizer.cognito[0].id : null
 
   depends_on = [
     aws_api_gateway_resource.base_resource,
@@ -166,8 +167,8 @@ resource "aws_api_gateway_method" "proxy" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   resource_id   = aws_api_gateway_resource.proxy[each.key].id
   http_method   = "ANY"
-  authorization = var.enable_cognito_authorizer ? "COGNITO_USER_POOLS" : "NONE"
-  authorizer_id = var.enable_cognito_authorizer ? aws_api_gateway_authorizer.cognito[0].id : null
+  authorization = var.enable_cognito_authorizer && coalesce(each.value.authorization, "COGNITO_USER_POOLS") == "COGNITO_USER_POOLS" ? "COGNITO_USER_POOLS" : "NONE"
+  authorizer_id = var.enable_cognito_authorizer && coalesce(each.value.authorization, "COGNITO_USER_POOLS") == "COGNITO_USER_POOLS" ? aws_api_gateway_authorizer.cognito[0].id : null
 }
 
 resource "aws_api_gateway_integration" "proxy" {
@@ -205,9 +206,9 @@ resource "aws_lambda_permission" "apigw_method" {
       [
         for method_name, method_config in resource.methods :
         {
-          key          = "${resource_key}-${method_name}"
-          lambda_arn   = resource.lambda_arn
-          method_name  = method_name
+          key         = "${resource_key}-${method_name}"
+          lambda_arn  = resource.lambda_arn
+          method_name = method_name
         }
       ] if resource.lambda_arn != null
     ]) : pair.key => pair
@@ -365,4 +366,3 @@ resource "aws_api_gateway_integration_response" "options" {
     "method.response.header.Access-Control-Allow-Origin"  = "'*'"
   }
 }
-

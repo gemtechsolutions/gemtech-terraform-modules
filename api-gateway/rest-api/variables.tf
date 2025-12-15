@@ -33,9 +33,10 @@ variable "endpoint_type" {
 variable "api_resources" {
   description = "Map of API resources and their configurations"
   type = map(object({
-    path_part  = string
-    lambda_arn = optional(string)
-    parent_key = optional(string)
+    path_part     = string
+    lambda_arn    = optional(string)
+    parent_key    = optional(string)
+    authorization = optional(string)
     methods = map(object({
       integration_uri     = string
       status_code         = string
