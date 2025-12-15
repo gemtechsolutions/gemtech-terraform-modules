@@ -42,3 +42,13 @@ output "cloudwatch_log_group_arn" {
   description = "ARN of the CloudWatch Log Group for API Gateway"
   value       = aws_cloudwatch_log_group.api_gateway.arn
 }
+
+output "authorizer_id" {
+  description = "ID of the Cognito authorizer (if enabled)"
+  value       = var.enable_cognito_authorizer ? aws_api_gateway_authorizer.cognito[0].id : null
+}
+
+output "authorizer_enabled" {
+  description = "Whether Cognito authorization is enabled"
+  value       = var.enable_cognito_authorizer
+}

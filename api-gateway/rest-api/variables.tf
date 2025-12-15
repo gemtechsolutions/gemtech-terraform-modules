@@ -99,3 +99,34 @@ variable "enable_cors" {
   type        = bool
   default     = true
 }
+
+# Cognito Authorizer Configuration
+variable "enable_cognito_authorizer" {
+  description = "Enable Cognito authorizer for REST API"
+  type        = bool
+  default     = false
+}
+
+variable "cognito_user_pool_arns" {
+  description = "List of Cognito User Pool ARNs for authorization"
+  type        = list(string)
+  default     = []
+}
+
+variable "authorizer_name" {
+  description = "Name of the Cognito authorizer"
+  type        = string
+  default     = "CognitoAuthorizer"
+}
+
+variable "identity_source" {
+  description = "Source of the identity in the incoming request (e.g., method.request.header.Authorization)"
+  type        = string
+  default     = "method.request.header.Authorization"
+}
+
+variable "authorizer_result_ttl_in_seconds" {
+  description = "TTL of cached authorizer results in seconds (0-3600). Set to 0 to disable caching."
+  type        = number
+  default     = 300
+}
