@@ -52,3 +52,11 @@ output "authorizer_enabled" {
   description = "Whether Cognito authorization is enabled"
   value       = var.enable_cognito_authorizer
 }
+
+output "proxy_resource_ids" {
+  description = "Map of API resource keys to their {proxy+} resource IDs"
+  value = {
+    for k, r in aws_api_gateway_resource.proxy :
+    k => r.id
+  }
+}
