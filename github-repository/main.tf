@@ -1,17 +1,3 @@
-# GitHub Repository Module
-# Creates a GitHub repository with branch protection and configuration
-
-terraform {
-  required_version = ">= 1.6.0"
-  required_providers {
-    github = {
-      source  = "integrations/github"
-      version = "~> 6.0"
-    }
-  }
-}
-
-# Create GitHub Repository
 resource "github_repository" "repo" {
   name        = var.repo_name
   description = var.repo_description
