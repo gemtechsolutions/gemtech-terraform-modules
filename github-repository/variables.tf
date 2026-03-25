@@ -205,13 +205,6 @@ variable "environments" {
   default = {}
 }
 
-variable "secrets" {
-  description = "GitHub Actions secrets"
-  type        = map(string)
-  default     = {}
-  sensitive   = true
-}
-
 variable "variables" {
   description = "GitHub Actions variables"
   type        = map(string)

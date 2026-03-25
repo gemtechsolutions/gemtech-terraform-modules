@@ -166,14 +166,6 @@ resource "github_repository_environment" "environments" {
   wait_timer = each.value.wait_timer
 }
 
-# Repository Secrets
-resource "github_actions_secret" "secrets" {
-  for_each        = var.secrets
-  repository      = github_repository.repo.name
-  secret_name     = each.key
-  plaintext_value = each.value
-}
-
 # Repository Variables
 resource "github_actions_variable" "variables" {
   for_each      = var.variables
