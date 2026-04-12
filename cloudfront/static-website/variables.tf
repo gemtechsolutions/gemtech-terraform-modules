@@ -41,3 +41,27 @@ variable "key_group_id" {
   type        = string
   default     = ""
 }
+
+variable "cors_allowed_origins" {
+  description = "List of allowed origins for S3 CORS configuration."
+  type        = list(string)
+  default     = []
+}
+
+variable "cors_allowed_methods" {
+  description = "List of allowed HTTP methods for S3 CORS configuration."
+  type        = list(string)
+  default     = ["GET", "HEAD"]
+}
+
+variable "cors_allowed_headers" {
+  description = "List of allowed headers for S3 CORS configuration."
+  type        = list(string)
+  default     = ["*"]
+}
+
+variable "cors_max_age_seconds" {
+  description = "Time in seconds the browser can cache the preflight response."
+  type        = number
+  default     = 3600
+}

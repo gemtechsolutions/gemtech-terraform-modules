@@ -34,6 +34,18 @@ data "aws_iam_policy_document" "private_access" {
   }
 }
 
+resource "aws_s3_bucket_cors_configuration" "website" {
+  count  = length(var.cors_allowed_origins) > 0 ? 1 : 0
+  bucket = aws_s3_bucket.website.id
+
+  cors_rule {
+    allowed_origins = var.cors_allowed_origins
+    allowed_methods = var.cors_allowed_methods
+    allowed_headers = var.cors_allowed_headers
+    max_age_seconds = var.cors_max_age_seconds
+  }
+}
+
 resource "aws_s3_bucket_policy" "private_access" {
   bucket = aws_s3_bucket.website.id
   policy = data.aws_iam_policy_document.private_access.json
@@ -68,6 +80,12 @@ resource "aws_cloudfront_distribution" "cdn" {
 
     forwarded_values {
       query_string = false
+
+      headers = length(var.cors_allowed_origins) > 0 ? [
+        "Origin",
+        "Access-Control-Request-Headers",
+        "Access-Control-Request-Method",
+      ] : []
 
       cookies {
         forward = "none"
