@@ -73,5 +73,17 @@ variable "clients" {
     prevent_user_existence_errors        = string
     enable_token_revocation              = bool
     explicit_auth_flows                  = list(string)
+    # Optional access/ID token lifetimes. Omit to inherit the AWS default
+    # (60 minutes). Pair with `token_validity_units` if a unit other than the
+    # AWS default for that field is desired.
+    access_token_validity                = optional(number)
+    id_token_validity                    = optional(number)
+    # Optional unit overrides (per-field). Cognito defaults: hours for the
+    # access/id tokens, days for the refresh token.
+    token_validity_units = optional(object({
+      access_token  = optional(string)
+      id_token      = optional(string)
+      refresh_token = optional(string)
+    }))
   }))
 }

@@ -34,6 +34,8 @@ resource "aws_cognito_user_pool_client" "clients" {
   logout_urls                          = each.value.logout_urls
   generate_secret                      = each.value.generate_secret
   refresh_token_validity               = each.value.refresh_token_validity
+  access_token_validity                = each.value.access_token_validity
+  id_token_validity                    = each.value.id_token_validity
   allowed_oauth_flows_user_pool_client = each.value.allowed_oauth_flows_user_pool_client
   supported_identity_providers         = each.value.supported_identity_providers
   allowed_oauth_scopes                 = each.value.allowed_oauth_scopes
@@ -41,6 +43,15 @@ resource "aws_cognito_user_pool_client" "clients" {
   prevent_user_existence_errors        = each.value.prevent_user_existence_errors
   enable_token_revocation              = each.value.enable_token_revocation
   explicit_auth_flows                  = each.value.explicit_auth_flows
+
+  dynamic "token_validity_units" {
+    for_each = each.value.token_validity_units == null ? [] : [each.value.token_validity_units]
+    content {
+      access_token  = token_validity_units.value.access_token
+      id_token      = token_validity_units.value.id_token
+      refresh_token = token_validity_units.value.refresh_token
+    }
+  }
 }
 
 resource "aws_cognito_user" "users" {
