@@ -57,7 +57,7 @@ resource "aws_cloudfront_distribution" "cdn" {
   price_class         = "PriceClass_100"
   default_root_object = "index.html"
 
-  aliases             = [var.domain_name]
+  aliases = [var.domain_name]
 
   origin {
     origin_id   = "s3-origin"
@@ -71,6 +71,9 @@ resource "aws_cloudfront_distribution" "cdn" {
   default_cache_behavior {
     target_origin_id       = "s3-origin"
     viewer_protocol_policy = "redirect-to-https"
+
+    # null (the default) attaches no policy, preserving prior behavior.
+    response_headers_policy_id = var.response_headers_policy_id
 
     allowed_methods = ["GET", "HEAD"]
     cached_methods  = ["GET", "HEAD"]

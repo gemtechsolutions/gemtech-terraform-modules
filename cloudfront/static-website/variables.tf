@@ -65,3 +65,17 @@ variable "cors_max_age_seconds" {
   type        = number
   default     = 3600
 }
+
+variable "response_headers_policy_id" {
+  description = <<-EOT
+    Optional ID of an aws_cloudfront_response_headers_policy to attach to the
+    default cache behavior. Leave null (the default) to preserve the existing
+    behavior of attaching no policy.
+
+    Consumers use this to add security or cross-origin headers (for example
+    Cross-Origin-Opener-Policy / Cross-Origin-Embedder-Policy, which browsers
+    require before a page may use SharedArrayBuffer and WASM threads).
+  EOT
+  type        = string
+  default     = null
+}
