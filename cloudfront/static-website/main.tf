@@ -51,6 +51,39 @@ resource "aws_s3_bucket_policy" "private_access" {
   policy = data.aws_iam_policy_document.private_access.json
 }
 
+locals {
+  # "spa": every origin 403/404 becomes the app shell with a 200, so a
+  # client-side router can resolve the path. "directory-index": the rewrite
+  # function below has already mapped real pages onto real keys, so anything
+  # still missing is genuinely missing and must say so with a 404 status.
+  spa_fallback = var.private || var.routing_mode != "spa" ? [] : [
+    { error_code = 404, response_code = 200, response_page_path = "/index.html" },
+    { error_code = 403, response_code = 200, response_page_path = "/index.html" },
+  ]
+
+  # 403 is listed alongside 404 because the bucket policy grants s3:GetObject
+  # but not s3:ListBucket, so S3 answers a missing key with AccessDenied rather
+  # than NoSuchKey. Dropping it would leave a bare 403 for every typo'd URL.
+  not_found_pages = (
+    var.private || var.routing_mode != "directory-index" || var.not_found_page_path == null ? [] : [
+      { error_code = 404, response_code = 404, response_page_path = var.not_found_page_path },
+      { error_code = 403, response_code = 404, response_page_path = var.not_found_page_path },
+    ]
+  )
+
+  custom_error_responses = concat(local.spa_fallback, local.not_found_pages)
+}
+
+resource "aws_cloudfront_function" "directory_index" {
+  count = var.routing_mode == "directory-index" ? 1 : 0
+
+  name    = "${replace(var.bucket_name, ".", "-")}-directory-index"
+  runtime = "cloudfront-js-2.0"
+  comment = "Append index.html to directory-style paths for ${var.domain_name}"
+  publish = true
+  code    = file("${path.module}/functions/directory-index.js")
+}
+
 resource "aws_cloudfront_distribution" "cdn" {
   enabled             = true
   is_ipv6_enabled     = true
@@ -81,6 +114,14 @@ resource "aws_cloudfront_distribution" "cdn" {
 
     trusted_key_groups = var.private ? [var.key_group_id] : null
 
+    dynamic "function_association" {
+      for_each = aws_cloudfront_function.directory_index
+      content {
+        event_type   = "viewer-request"
+        function_arn = function_association.value.arn
+      }
+    }
+
     forwarded_values {
       query_string = false
 
@@ -97,11 +138,11 @@ resource "aws_cloudfront_distribution" "cdn" {
   }
 
   dynamic "custom_error_response" {
-    for_each = var.private ? [] : [404, 403]
+    for_each = local.custom_error_responses
     content {
-      error_code            = custom_error_response.value
-      response_code         = 200
-      response_page_path    = "/index.html"
+      error_code            = custom_error_response.value.error_code
+      response_code         = custom_error_response.value.response_code
+      response_page_path    = custom_error_response.value.response_page_path
       error_caching_min_ttl = 0
     }
   }
