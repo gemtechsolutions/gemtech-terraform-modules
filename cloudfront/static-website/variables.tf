@@ -118,3 +118,25 @@ variable "not_found_page_path" {
   type        = string
   default     = "/404.html"
 }
+
+variable "viewer_request_lambda_arn" {
+  description = <<-EOT
+    Optional version-qualified ARN of a Lambda@Edge function (us-east-1,
+    published version, not $LATEST) to attach on viewer-request, for example to
+    gate the site behind HTTP Basic Auth. Leave null (the default) to preserve
+    the existing behavior.
+
+    CloudFront does not allow a CloudFront Function and a Lambda@Edge on the
+    same event, so when this is set the routing_mode = "directory-index"
+    CloudFront Function is still created but NOT attached. The Lambda must then
+    perform the same rewrite itself (see functions/directory-index.js); the
+    not_found_page_path error responses still apply.
+  EOT
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.viewer_request_lambda_arn == null || can(regex("^arn:aws:lambda:us-east-1:[0-9]{12}:function:[^:]+:[0-9]+$", var.viewer_request_lambda_arn))
+    error_message = "viewer_request_lambda_arn must be a version-qualified us-east-1 Lambda ARN (arn:aws:lambda:us-east-1:<account>:function:<name>:<version>)."
+  }
+}

@@ -114,11 +114,25 @@ resource "aws_cloudfront_distribution" "cdn" {
 
     trusted_key_groups = var.private ? [var.key_group_id] : null
 
+    # CloudFront rejects a CloudFront Function and a Lambda@Edge on the same
+    # event, so a viewer-request Lambda (which must then do the directory-index
+    # rewrite itself) replaces the function's association. The function is
+    # still created; only its association switches. Written as for-expressions
+    # rather than count so an ARN that is unknown until apply still plans.
     dynamic "function_association" {
-      for_each = aws_cloudfront_function.directory_index
+      for_each = [for f in aws_cloudfront_function.directory_index : f.arn if var.viewer_request_lambda_arn == null]
       content {
         event_type   = "viewer-request"
-        function_arn = function_association.value.arn
+        function_arn = function_association.value
+      }
+    }
+
+    dynamic "lambda_function_association" {
+      for_each = [for arn in [var.viewer_request_lambda_arn] : arn if arn != null]
+      content {
+        event_type   = "viewer-request"
+        lambda_arn   = lambda_function_association.value
+        include_body = false
       }
     }
 
