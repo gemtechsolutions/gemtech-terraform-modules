@@ -131,3 +131,9 @@ variable "authorizer_result_ttl_in_seconds" {
   type        = number
   default     = 300
 }
+
+variable "manage_account_cloudwatch_role" {
+  description = "Create the account-wide api-gateway-cloudwatch-global IAM role and set it as API Gateway's CloudWatch role for this region. Only one stack per account/region may do this; set false in every other stack."
+  type        = bool
+  default     = true
+}
