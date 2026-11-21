@@ -1,7 +1,9 @@
 resource "aws_cognito_user_pool" "this" {
   name = "${var.project_name}-${var.environment}"
 
-  mfa_configuration        = var.mfa_configuration
+  mfa_configuration          = var.mfa_configuration
+  username_attributes        = var.username_attributes
+  auto_verified_attributes   = var.auto_verified_attributes
   email_verification_subject = var.email_subject
 
   admin_create_user_config {
@@ -57,8 +59,8 @@ resource "aws_cognito_user_pool_client" "clients" {
 resource "aws_cognito_user" "users" {
   for_each = var.users
 
-  username       = each.key
-  user_pool_id   = aws_cognito_user_pool.this.id
+  username                 = each.key
+  user_pool_id             = aws_cognito_user_pool.this.id
   desired_delivery_mediums = ["EMAIL"]
   attributes = {
     email = each.value.email
@@ -68,7 +70,7 @@ resource "aws_cognito_user" "users" {
 resource "aws_cognito_user_group" "groups" {
   for_each = { for group in var.user_groups : group.name => group }
 
-  name        = each.value.name
+  name         = each.value.name
   user_pool_id = aws_cognito_user_pool.this.id
-  description = each.value.description
+  description  = each.value.description
 }
