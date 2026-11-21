@@ -1,5 +1,10 @@
-# IAM role for API Gateway to write logs to CloudWatch
+# IAM role for API Gateway to write logs to CloudWatch.
+# This role and the account setting below are ACCOUNT-WIDE (one per region),
+# so only one stack per account/region may own them. Other stacks set
+# manage_account_cloudwatch_role = false.
 resource "aws_iam_role" "cloudwatch" {
+  count = var.manage_account_cloudwatch_role ? 1 : 0
+
   name = "api-gateway-cloudwatch-global"
 
   assume_role_policy = jsonencode({
@@ -15,13 +20,33 @@ resource "aws_iam_role" "cloudwatch" {
 }
 
 resource "aws_iam_role_policy_attachment" "cloudwatch" {
-  role       = aws_iam_role.cloudwatch.name
+  count = var.manage_account_cloudwatch_role ? 1 : 0
+
+  role       = aws_iam_role.cloudwatch[0].name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
 }
 
 # Set the CloudWatch role at the account level (one-time setup per region)
 resource "aws_api_gateway_account" "this" {
-  cloudwatch_role_arn = aws_iam_role.cloudwatch.arn
+  count = var.manage_account_cloudwatch_role ? 1 : 0
+
+  cloudwatch_role_arn = aws_iam_role.cloudwatch[0].arn
+}
+
+# Existing stacks keep their resources at the new indexed addresses.
+moved {
+  from = aws_iam_role.cloudwatch
+  to   = aws_iam_role.cloudwatch[0]
+}
+
+moved {
+  from = aws_iam_role_policy_attachment.cloudwatch
+  to   = aws_iam_role_policy_attachment.cloudwatch[0]
+}
+
+moved {
+  from = aws_api_gateway_account.this
+  to   = aws_api_gateway_account.this[0]
 }
 
 resource "aws_api_gateway_rest_api" "this" {
