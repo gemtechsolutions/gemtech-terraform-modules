@@ -76,8 +76,8 @@ variable "clients" {
     # Optional access/ID token lifetimes. Omit to inherit the AWS default
     # (60 minutes). Pair with `token_validity_units` if a unit other than the
     # AWS default for that field is desired.
-    access_token_validity                = optional(number)
-    id_token_validity                    = optional(number)
+    access_token_validity = optional(number)
+    id_token_validity     = optional(number)
     # Optional unit overrides (per-field). Cognito defaults: hours for the
     # access/id tokens, days for the refresh token.
     token_validity_units = optional(object({
@@ -86,4 +86,19 @@ variable "clients" {
       refresh_token = optional(string)
     }))
   }))
+}
+
+# Optional sign-in settings. null (the default) leaves the pool exactly as
+# before, so existing callers see no change. Changing username_attributes on
+# an existing pool forces Terraform to REPLACE the pool (users are lost).
+variable "username_attributes" {
+  description = "Attributes users can sign in with instead of a username, e.g. [\"email\"]. Forces pool replacement when changed."
+  type        = list(string)
+  default     = null
+}
+
+variable "auto_verified_attributes" {
+  description = "Attributes Cognito verifies automatically, e.g. [\"email\"]."
+  type        = list(string)
+  default     = null
 }
