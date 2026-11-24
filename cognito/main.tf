@@ -5,6 +5,7 @@ resource "aws_cognito_user_pool" "this" {
   username_attributes        = var.username_attributes
   auto_verified_attributes   = var.auto_verified_attributes
   email_verification_subject = var.email_subject
+  email_verification_message = var.email_message
 
   admin_create_user_config {
     allow_admin_create_user_only = true
