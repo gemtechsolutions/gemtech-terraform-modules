@@ -102,3 +102,13 @@ variable "auto_verified_attributes" {
   type        = list(string)
   default     = null
 }
+
+# Optional body of the verification email (attribute verification and
+# forgot-password codes). It must contain the {####} code placeholder. null
+# (the default) leaves the pool's current message, so existing callers see no
+# change. Updated in place; it never replaces the pool.
+variable "email_message" {
+  description = "Verification email body; must contain {####}. null keeps the pool's current message."
+  type        = string
+  default     = null
+}
