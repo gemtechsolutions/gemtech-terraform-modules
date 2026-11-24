@@ -46,6 +46,7 @@ resource "aws_cognito_user_pool_client" "clients" {
   prevent_user_existence_errors        = each.value.prevent_user_existence_errors
   enable_token_revocation              = each.value.enable_token_revocation
   explicit_auth_flows                  = each.value.explicit_auth_flows
+  write_attributes                     = each.value.write_attributes
 
   dynamic "token_validity_units" {
     for_each = each.value.token_validity_units == null ? [] : [each.value.token_validity_units]

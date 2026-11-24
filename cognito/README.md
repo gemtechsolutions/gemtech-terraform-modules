@@ -11,6 +11,7 @@ This Terraform module creates a Cognito user pool, clients, users, and groups.
 - Optional MFA and advanced security settings
 - Optional sign-in by email (`username_attributes = ["email"]`) and auto-verified attributes. Changing `username_attributes` on an existing pool replaces it, so set it before the pool has users.
 - Optional verification email body (`email_message`, must contain `{####}`), next to `email_subject`. Unset keeps the pool's current message; changing it updates the pool in place.
+- Optional per-client `write_attributes` (which attributes users may change with their own token). Unset keeps the client as it is; changing it updates the client in place.
 
 ## Inputs
 

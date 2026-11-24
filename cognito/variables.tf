@@ -73,6 +73,11 @@ variable "clients" {
     prevent_user_existence_errors        = string
     enable_token_revocation              = bool
     explicit_auth_flows                  = list(string)
+    # Optional attributes the client's users may write themselves
+    # (UpdateUserAttributes with their own token). Omit (null) to keep the
+    # current setting: Cognito then lets users write every writable
+    # attribute, email included. Updated in place.
+    write_attributes = optional(list(string))
     # Optional access/ID token lifetimes. Omit to inherit the AWS default
     # (60 minutes). Pair with `token_validity_units` if a unit other than the
     # AWS default for that field is desired.
